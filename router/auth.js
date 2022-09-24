@@ -1,6 +1,8 @@
 const express= require('express');
 const router = express.Router();
 
+const bcrypt = require('bcryptjs');
+
 require('../db/conn')
 const User= require("../model/userSchema");
 
@@ -22,13 +24,18 @@ router.post('/register',async(req,res) => {
 
         if(userExist) {
             return res.status(422).json({error: "Email already exists"});
-        }
-        
-        const user = new User({name, email, phone, work, password, cpassword});
 
-        const userRegister= await user.save();
+        }else if(password != cpassword) {
+            return res.status(422).json({error: "password does not match"});
 
-          res.status(201).json({message:"user registered successfully"});
+        }else {
+            const user = new User({name, email, phone, work, password, cpassword});
+
+            //const userRegister=
+              userRegister = await user.save();
+
+              res.status(201).json({message:"user registered successfully"});
+        }   
      
     } catch(err) {
     console.log(err);
@@ -39,7 +46,7 @@ router.post('/register',async(req,res) => {
 });
 
 //login route
-router.post('/signin',async (req,res) => {
+router.post('/login',async (req,res) => {
    try{
         const{email,password} = req.body;
         if(!email || !password) {
