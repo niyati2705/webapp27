@@ -1,6 +1,7 @@
 const express= require('express');
 const router = express.Router();
 
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 require('../db/conn')
@@ -48,6 +49,7 @@ router.post('/register',async(req,res) => {
 //login route
 router.post('/login',async (req,res) => {
    try{
+        let token;
         const{email,password} = req.body;
         if(!email || !password) {
             return res.status(400).json({message:"Pls fill the details"});
@@ -55,14 +57,24 @@ router.post('/login',async (req,res) => {
         
         const userLogin = await User.findOne({email:email});
 
-        console.log(userLogin);
+        //console.log(userLogin);
 
-        if(!userLogin){
-            res.status(400).json({error:"User error"});
-        }else{
-            res.json({message:"user signin successful"});
-        }
+        if(userLogin)
+        {
+            const isMatch= await bcrypt.compare(password, userLogin.password);
 
+             token= await userLogin.generateAuthToken()
+            console.log(token);
+
+            if(!isMatch){
+                res.status(400).json({error:"Invalid Credentials"});
+            }else{
+                res.json({message:"user signin successful"});
+            }    
+
+        } else{
+            res.status(400).json({error:"Invalid Credentials"});
+        }       
 
    } catch(err){
      console.log(err);
