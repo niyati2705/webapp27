@@ -31,6 +31,7 @@ app.get('/about', middleware,(req,res) => {
 });
 
 app.get('/contact',(req,res) => {
+    //res.cookie("Test",'niyati'); 
     res.send('Hello contact from the server');
 });
 
