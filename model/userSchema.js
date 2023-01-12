@@ -15,8 +15,8 @@ const userSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
-    work: {
-        type: String,
+    rollno: {
+        type: Number,
         required:true
     },
 

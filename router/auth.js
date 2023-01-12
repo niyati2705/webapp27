@@ -4,6 +4,11 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+const authenticate=require("../middleware/authenticate");
+
+const cookieParser =require("cookie-parser");
+router.use(cookieParser())
+
 require('../db/conn')
 const User= require("../model/userSchema");
 
@@ -13,9 +18,9 @@ router.get('/',(req,res) => {
 
 router.post('/register',async(req,res) => {  
     
-    const {name, email, phone, work, password, cpassword}= req.body;
+    const {name, email, phone, rollno, password, cpassword}= req.body;
     
-    if(!name || !email || !phone || !work || !password || !cpassword ) 
+    if(!name || !email || !phone || !rollno || !password || !cpassword ) 
        {
         return res.status(422).json({error: "Pls fill the field properly"});
        }
@@ -30,7 +35,7 @@ router.post('/register',async(req,res) => {
             return res.status(422).json({error: "password does not match"});
 
         }else {
-            const user = new User({name, email, phone, work, password, cpassword});
+            const user = new User({name, email, phone, rollno, password, cpassword});
 
             //const userRegister=
               userRegister = await user.save();
@@ -63,13 +68,13 @@ router.post('/login',async (req,res) => {
         {
             const isMatch= await bcrypt.compare(password, userLogin.password);
 
-             token= await userLogin.generateAuthToken()
+             token= await userLogin.generateAuthToken();
             console.log(token);
 
             res.cookie("jwtoken", token, {
-                expires: new Date(Date.now()+25892000000),
-                httpOnly:true
-            })
+                expires: new Date(Date.now()+25892000000),//token will expire in 30 days
+                httpOnly:true  
+            });
 
             if(!isMatch){
                 res.status(400).json({error:"Invalid Credentials"});
@@ -85,6 +90,25 @@ router.post('/login',async (req,res) => {
      console.log(err);
    }
 
+});
+
+//profile page
+router.get('/profile',authenticate,(req,res) => {
+    console.log('Hello Profile');
+    res.send(req.rootUser);
+});
+
+//get user data for contact us and home page
+router.get('/getdata', authenticate, (req,res) => {
+    console.log('Hello contact');
+    res.send(req.rootUser);
+})
+
+//logout page
+router.get('/logout',(req,res) => {
+    console.log('Hello Logout');
+    res.clearCookie('jwtoken',{path:'/'});
+    res.status(200).send('User Logout');
 });
 
 module.exports = router;
